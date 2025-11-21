@@ -90,8 +90,8 @@ export const NotesProvider = ({ children }) => {
 
       const catNames =
         catsDocs.length > 0
-          ? catsDocs.map((c) => c.name)
-          : ['Linux', 'SQL', 'DevOps'];
+          ? ['Default', ...catsDocs.map((c) => c.name).filter(c => c !== 'Default')]
+          : ['Default', 'Linux', 'SQL', 'DevOps'];
 
       console.log('[NotesProvider] Loaded categories:', catNames);
       setCategories(catNames);
@@ -102,7 +102,7 @@ export const NotesProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('[NotesProvider] Error loading categories:', error);
-      setCategories(['Linux', 'SQL', 'DevOps']);
+      setCategories(['Default', 'Linux', 'SQL', 'DevOps']);
     }
   };
 

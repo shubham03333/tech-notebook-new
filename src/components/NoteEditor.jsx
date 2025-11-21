@@ -46,6 +46,7 @@ const NoteEditor = () => {
     try {
       if (isNew) {
         await addNote(noteData);
+        setShowCreatePopup(false); // Close the popup after saving new note
       } else {
         await updateNote(selectedNote.id, noteData);
       }
