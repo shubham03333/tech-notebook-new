@@ -1,0 +1,99 @@
+if (selectedNote) {
+      setTitle(selectedNote.title);
+      setCategory(selectedNote.category);
+      setTags(selectedNote.tags.join(', '));
+      setContent(selectedNote.content);
+      setIsNew(false);
+      setShowCreatePopup(false);
+    } else {
+      setTitle('');
+      setCategory('');
+      setTags('');
+      setContent('');
+      setIsNew(true);
+      setShowCreatePopup(true);
+    }
+  }, [selectedNote]);
+=======
+  useEffect(() => {
+    if (selectedNote) {
+      setTitle(selectedNote.title);
+      setCategory(selectedNote.category);
+      setTags(selectedNote.tags.join(', '));
+      setContent(selectedNote.content);
+      setIsNew(false);
+      setShowCreatePopup(false);
+    } else {
+      setTitle('');
+      setCategory('');
+      setTags('');
+      setContent('');
+      setIsNew(true);
+      // Removed automatic popup open on no selectedNote
+      // setShowCreatePopup(true);
+    }
+  }, [selectedNote]);
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+  if (showCreatePopup) {
+    return (
+      <>
+        <div className="popup-overlay" onClick={() => setShowCreatePopup(false)}></div>
+        <div className="popup-container">
+          <form
+            className="popup-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSave();
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="popup-title"
+            style={{maxWidth: '95vw', padding: '20px'}}
+          >
+            <button
+              type="button"
+              className="close-button"
+              onClick={() => setShowCreatePopup(false)}
+              aria-label="Close create note popup"
+            >
+              ×
+            </button>
+            <h2 id="popup-title">Create New Note</h2>
+            ...
+  if (!selectedNote) return <div className="note-editor">Select or create a note <button onClick={() => setShowCreatePopup(true)}>Create New Note</button></div>;
+=======
+  if (showCreatePopup) {
+    return (
+      <>
+        <div className="popup-overlay" onClick={() => setShowCreatePopup(false)}></div>
+        <div className="popup-container">
+          <form
+            className="popup-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSave();
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="popup-title"
+            style={{maxWidth: '95vw', padding: '20px'}}
+          >
+            <button
+              type="button"
+              className="close-button"
+              onClick={() => setShowCreatePopup(false)}
+              aria-label="Close create note popup"
+            >
+              ×
+            </button>
+            <h2 id="popup-title">Create New Note</h2>
+            ...
+  if (!selectedNote)
+    return (
+      <div className="note-editor">
+        Select or create a note{' '}
+        <button onClick={() => setShowCreatePopup(true)}>Create New Note</button>
+      </div>
+    );

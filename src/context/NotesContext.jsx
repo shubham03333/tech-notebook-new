@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   collection,
   addDoc,
@@ -24,27 +24,8 @@ export const NotesProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedNote, setSelectedNote] = useState(null);
-  const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { currentUser } = useAuth();
-
-  // -----------------------------
-  // Load data when user changes
-  // -----------------------------
-  useEffect(() => {
-    if (!currentUser) {
-      console.log('[NotesProvider] No user, clearing data');
-      setNotes([]);
-      setCategories([]);
-      setSelectedCategory(null);
-      setSelectedNote(null);
-      return;
-    }
-
-    console.log('[NotesProvider] Loading data for user:', currentUser.uid);
-    loadNotes(currentUser.uid);
-    loadCategories(currentUser.uid);
-  }, [currentUser]);
 
   // -----------------------------
   // Load notes from Firestore
@@ -105,6 +86,24 @@ export const NotesProvider = ({ children }) => {
       setCategories(['Default', 'Linux', 'SQL', 'DevOps']);
     }
   };
+
+  // -----------------------------
+  // Load data when user changes
+  // -----------------------------
+  useEffect(() => {
+    if (!currentUser) {
+      console.log('[NotesProvider] No user, clearing data');
+      setNotes([]);
+      setCategories([]);
+      setSelectedCategory(null);
+      setSelectedNote(null);
+      return;
+    }
+
+    console.log('[NotesProvider] Loading data for user:', currentUser.uid);
+    loadNotes(currentUser.uid);
+    loadCategories(currentUser.uid);
+  }, [currentUser, loadNotes, loadCategories]);
 
   // -----------------------------
   // Add note
@@ -270,3 +269,4 @@ export const NotesProvider = ({ children }) => {
     </NotesContext.Provider>
   );
 };
+

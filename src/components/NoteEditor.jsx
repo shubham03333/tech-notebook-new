@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -13,6 +13,7 @@ const NoteEditor = () => {
   const [isPreview, setIsPreview] = useState(false);
   const [isNew, setIsNew] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showCreatePopup, setShowCreatePopup] = useState(false);
 
   useEffect(() => {
@@ -29,7 +30,8 @@ const NoteEditor = () => {
       setTags('');
       setContent('');
       setIsNew(true);
-      setShowCreatePopup(true);
+      // Removed automatic popup open on no selectedNote
+      // setShowCreatePopup(true);
     }
   }, [selectedNote]);
 
@@ -49,6 +51,7 @@ const NoteEditor = () => {
         setShowCreatePopup(false); // Close the popup after saving new note
       } else {
         await updateNote(selectedNote.id, noteData);
+        setSelectedNote(null); // Close the edit view after saving existing note
       }
     } catch (error) {
       console.error('Error saving note:', error);
@@ -60,8 +63,13 @@ const NoteEditor = () => {
   // Auto-save
   useEffect(() => {
     if (!isNew && selectedNote) {
-      const timer = setTimeout(() => {
-        updateNote(selectedNote.id, { content });
+      const timer = setTimeout(async () => {
+        try {
+          await updateNote(selectedNote.id, { content });
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+          // Silently fail to avoid interrupting user
+        }
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -72,7 +80,26 @@ const NoteEditor = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    // Create a temporary print view
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .print-content { max-width: none; }
+          </style>
+        </head>
+        <body>
+          <div class="print-content">
+            ${content.replace(/\n/g, '<br>')}
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   const handleExportPDF = () => {
@@ -82,6 +109,7 @@ const NoteEditor = () => {
 
   const handleDelete = async () => {
     if (selectedNote && window.confirm('Are you sure you want to delete this note?')) {
+      setIsDeleting(true);
       try {
         await deleteNote(selectedNote.id);
         // Clear the selected note after deletion
@@ -89,59 +117,127 @@ const NoteEditor = () => {
       } catch (error) {
         console.error('Error deleting note:', error);
         alert('Failed to delete note. Please try again.');
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
 
   if (showCreatePopup) {
     return (
-      <div className="note-editor centered">
-        <button className="close-button" onClick={() => setShowCreatePopup(false)}>×</button>
-        <h2>Create New Note</h2>
-        <input
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
-        <select value={category} onChange={e => setCategory(e.target.value)}>
-          <option value="">Select Category</option>
-          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-        </select>
-        <input
-          type="text"
-          placeholder="Tags (comma separated)"
-          value={tags}
-          onChange={e => setTags(e.target.value)}
-        />
-        <textarea
-          placeholder="Content (Markdown)"
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          rows={20}
-        />
-        <button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save'}
-        </button>
-      </div>
+      <>
+        <div className="popup-overlay" onClick={() => setShowCreatePopup(false)}></div>
+        <div className="popup-container">
+          <form
+            className="popup-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSave();
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="popup-title"
+            style={{maxWidth: '95vw', padding: '20px'}}
+          >
+            <button
+              type="button"
+              className="close-button"
+              onClick={() => setShowCreatePopup(false)}
+              aria-label="Close create note popup"
+            >
+              ×
+            </button>
+            <h2 id="popup-title">Create New Note</h2>
+
+            <div className="form-group">
+              <label htmlFor="note-title">Title</label>
+              <input
+                id="note-title"
+                type="text"
+                placeholder="Enter note title"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="note-category">Category</label>
+              <select
+                id="note-category"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+              >
+                <option value="">Select Category</option>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="note-tags">Tags</label>
+              <input
+                id="note-tags"
+                type="text"
+                placeholder="Enter tags (comma separated)"
+                value={tags}
+                onChange={e => setTags(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="note-content">Content</label>
+              <textarea
+                id="note-content"
+                placeholder="Write your note content here (Markdown supported)"
+                value={content}
+                onChange={e => setContent(e.target.value)}
+                rows={15}
+              />
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="cancel-button"
+                onClick={() => setShowCreatePopup(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="save-button"
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Create Note'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </>
     );
   }
 
-  if (!selectedNote) return <div className="note-editor">Select or create a note <button onClick={() => setShowCreatePopup(true)}>Create New Note</button></div>;
+  if (!selectedNote)
+    return (
+      <div className="note-editor">
+        Select or create a note{' '}
+        <button onClick={() => setShowCreatePopup(true)}>Create New Note</button>
+      </div>
+    );
 
   return (
-    <div className="note-editor">
+    <div className="note-editor" style={{padding: '12px', maxWidth: '100%'}}>
       <h2>Edit Note</h2>
-      <div className="editor-controls">
-        <button onClick={() => setIsPreview(!isPreview)}>
+      <div className="editor-controls" style={{gap: '8px'}}>
+        <button onClick={() => setIsPreview(!isPreview)} style={{padding: '6px 12px'}}>
           {isPreview ? 'Edit' : 'Preview'}
         </button>
-        <button onClick={handleSave} disabled={isSaving}>
+        <button onClick={handleSave} disabled={isSaving} style={{padding: '6px 12px'}}>
           {isSaving ? 'Saving...' : 'Save'}
         </button>
-        <button onClick={handlePrint}>Print</button>
-        <button onClick={handleExportPDF}>Export PDF</button>
-        <button onClick={handleDelete} style={{ backgroundColor: '#e53e3e', color: 'white' }}>Delete</button>
+        <button onClick={handlePrint} style={{padding: '6px 12px'}}>Print</button>
+        <button onClick={handleExportPDF} style={{padding: '6px 12px'}}>Export PDF</button>
+        <button onClick={handleDelete} style={{ backgroundColor: '#e53e3e', color: 'white', padding: '6px 12px' }}>Delete</button>
       </div>
       {isPreview ? (
         <div className="preview">
@@ -172,6 +268,7 @@ const NoteEditor = () => {
           value={content}
           onChange={e => setContent(e.target.value)}
           rows={30}
+          style={{padding: '12px', fontSize: '14px', boxSizing: 'border-box', width: '100%', resize: 'vertical', minHeight: '150px'}}
         />
       )}
     </div>

@@ -5,18 +5,13 @@ import NoteEditor from './components/NoteEditor';
 import SearchBar from './components/SearchBar';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import { NotesProvider } from './context/NotesContext';
+import { NotesProvider, useNotes } from './context/NotesContext';
 import { useAuth } from './context/AuthContext';
 import './App.css';
+// import './App.css';
 
 function App() {
   const { currentUser, loading } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    document.body.className = darkMode ? 'dark-mode' : '';
-  }, [darkMode]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -24,7 +19,7 @@ function App() {
 
   if (!currentUser) {
     return (
-      <div className="auth-container">
+      <div className="login-container">
         <Login />
         <Signup />
       </div>
@@ -33,19 +28,64 @@ function App() {
 
   return (
     <NotesProvider>
-      <div className="app">
-        <SearchBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <NoteList />
+      <AppContent />
+    </NotesProvider>
+  );
+}
+
+function AppContent() {
+  const { searchQuery, selectedNote } = useNotes();
+  const [darkMode, setDarkMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.className = darkMode ? 'dark-mode' : '';
+  }, [darkMode]);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scrollToBottom = () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
+
+  return (
+    <div className={`app ${sidebarOpen ? '' : 'sidebar-closed'} ${searchQuery ? 'searching' : ''}`}>
+      <SearchBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {searchQuery ? (
+        <>
+          <NoteEditor />
+          <NoteList />
+        </>
+      ) : (
         <NoteEditor />
+      )}
+      {!searchQuery && <NoteList />}
+      <button
+        className="dark-mode-toggle"
+        onClick={() => setDarkMode(!darkMode)}
+      >
+        {darkMode ? '☀️ Light' : '🌙 Dark'}
+      </button>
+      <div className="scroll-buttons">
         <button
-          className="dark-mode-toggle"
-          onClick={() => setDarkMode(!darkMode)}
+          className="scroll-to-top"
+          onClick={scrollToTop}
+          title="Scroll to Top"
         >
-          {darkMode ? '☀️ Light' : '🌙 Dark'}
+          ⬆️
+        </button>
+        <button
+          className="scroll-to-bottom"
+          onClick={scrollToBottom}
+          title="Scroll to Bottom"
+        >
+          ⬇️
         </button>
       </div>
-    </NotesProvider>
+    </div>
   );
 }
 

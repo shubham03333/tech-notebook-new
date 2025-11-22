@@ -8,9 +8,6 @@ const PrintView = ({ note }) => {
 
   return (
     <div className="print-view">
-      <h1>{note.title}</h1>
-      <p><strong>Category:</strong> {note.category}</p>
-      <p><strong>Tags:</strong> {note.tags.join(', ')}</p>
       <ReactMarkdown
         components={{
           code({ node, inline, className, children, ...props }) {

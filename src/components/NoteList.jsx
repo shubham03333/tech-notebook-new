@@ -33,9 +33,9 @@ const NoteList = () => {
   };
 
   return (
-    <div className="note-list">
+    <div className={`note-list ${searchQuery ? 'searching' : ''}`}>
       <h2>Notes {searchQuery && `(Searching across all categories)`}</h2>
-      <button onClick={handleAddNote}>Add New Note</button>
+      <button className="create-new-note-btn" onClick={handleAddNote}>Add New Note</button>
       {filteredNotes.map(note => (
         <div
           key={note.id}

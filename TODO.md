@@ -1,8 +1,9 @@
-# Restyle Search Box, Save Button, and Dark Mode Button
+# Restyle Create New Note Popup
 
 ## Tasks
-- [ ] Update search box width in src/App.css (.search-input) to make it shorter (e.g., 60% width)
-- [ ] Restyle save button in src/App.css (.editor-controls button) to be smaller and more subtle
-- [ ] Add styles for dark mode button in src/App.css (.dark-mode-toggle)
-- [ ] Update src/App.jsx to add className and icon to dark mode button
-- [ ] Test the app for responsiveness and visual changes
+- [ ] Update NoteEditor.jsx to add proper form labels and structure for the popup
+- [ ] Add glassmorphism overlay background for the popup
+- [ ] Style the popup form with modern inputs, labels, and buttons
+- [ ] Add entrance/exit animations for the popup
+- [ ] Make the popup responsive across different screen sizes
+- [ ] Ensure accessibility with proper ARIA labels and keyboard navigation
