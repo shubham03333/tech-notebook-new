@@ -5,6 +5,7 @@ import NoteEditor from './components/NoteEditor';
 import SearchBar from './components/SearchBar';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import SuperUserNotesPage from './components/SuperUserNotesPage';
 import { NotesProvider, useNotes } from './context/NotesContext';
 import { useAuth } from './context/AuthContext';
 import './App.css';
@@ -35,8 +36,10 @@ function App() {
 
 function AppContent() {
   const { searchQuery, selectedNote } = useNotes();
+  const { isSuperUser } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [superUserView, setSuperUserView] = useState(false);
 
   useEffect(() => {
     document.body.className = darkMode ? 'dark-mode' : '';
@@ -54,15 +57,27 @@ function AppContent() {
     <div className={`app ${sidebarOpen ? '' : 'sidebar-closed'} ${searchQuery ? 'searching' : ''}`}>
       <SearchBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      {searchQuery ? (
+
+      {isSuperUser && (
+        <button className="superuser-toggle-btn" onClick={() => setSuperUserView(!superUserView)}>
+          {superUserView ? 'Back to My Notes' : 'View All Notes (SuperUser)'}
+        </button>
+      )}
+
+      {superUserView ? (
+        <SuperUserNotesPage />
+      ) : searchQuery ? (
         <>
           <NoteEditor />
           <NoteList />
         </>
       ) : (
-        <NoteEditor />
+        <>
+          <NoteEditor />
+          {!selectedNote && <NoteList />}
+        </>
       )}
-      {!searchQuery && <NoteList />}
+
       <button
         className="dark-mode-toggle"
         onClick={() => setDarkMode(!darkMode)}
