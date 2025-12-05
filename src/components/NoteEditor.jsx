@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw } from 'draft-js';
+import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw, ContentState } from 'draft-js';
 import { useNotes } from '../context/NotesContext';
 import 'draft-js/dist/Draft.css';
 
@@ -220,24 +220,24 @@ const NoteEditor = () => {
     return (
       <>
         <div className="popup-overlay" onClick={() => setShowCreatePopup(false)}></div>
-        <div className="popup-container" role="dialog" aria-modal="true" aria-labelledby="popup-title" style={{ maxWidth: '95vw', padding: '20px' }}>
-          <button
-            type="button"
-            className="close-button"
-            onClick={() => setShowCreatePopup(false)}
-            aria-label="Close create note popup"
-            style={{ float: 'right', fontSize: '1.5rem', border: 'none', background: 'transparent', cursor: 'pointer' }}
-          >
-            ×
-          </button>
-          <h2 id="popup-title">Create New Note</h2>
+        <div className="popup-container" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+          <div className="popup-form">
+            <button
+              type="button"
+              className="close-button"
+              onClick={() => setShowCreatePopup(false)}
+              aria-label="Close create note popup"
+            >
+              ×
+            </button>
+            <h2 id="popup-title">Create New Note</h2>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSave();
-            }}
-          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSave();
+              }}
+            >
             <div className="form-group">
               <label htmlFor="note-title">Title</label>
               <input
@@ -280,7 +280,7 @@ const NoteEditor = () => {
             <div
               style={{
                 border: '1px solid #ddd',
-                minHeight: 150,
+                minHeight: 300,
                 padding: 10,
                 cursor: 'text',
               }}
@@ -310,6 +310,7 @@ const NoteEditor = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </>
     );
@@ -350,6 +351,15 @@ const NoteEditor = () => {
           alignItems: 'center',
         }}
       >
+        <button
+          type="button"
+          onClick={() => setSelectedNote(null)}
+          aria-label="Close editor"
+          title="Close"
+          style={{ padding: '6px 12px', backgroundColor: '#6b7280', color: 'white' }}
+        >
+          ✕
+        </button>
         <button
           type="button"
           onClick={() => toggleInlineStyle('BOLD')}

@@ -38,7 +38,7 @@ function AppContent() {
   const { searchQuery, selectedNote } = useNotes();
   const { isSuperUser } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [superUserView, setSuperUserView] = useState(false);
 
   useEffect(() => {
